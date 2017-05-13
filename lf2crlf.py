@@ -36,7 +36,10 @@ def getFileSize(filename):
 
     
 def warnUser(filename, sz, warnsize):
-    s = input('file '+filename+' is of size '+formatSize(sz)+', create backup file? (y/n): ')
+    s = ''
+    while s!='y' and s!='n':
+        print('type [y] or [n]')
+        s = input('file '+filename+' is of size '+formatSize(sz)+', create backup file? (y/n): ')
     return s[0].lower() == 'n'
 
     
@@ -51,7 +54,8 @@ def formatSize(n):
 def fileIterator(includeSubdir):
     if not includeSubdir:
         for filename in os.listdir():
-            yield filename
+            if os.path.isfile(filename):
+                yield filename
     else:
         for root, _, filenames in os.walk('.'):
             for filename in filenames:            
@@ -62,7 +66,7 @@ if __name__=='__main__':
         
     cwd = os.getcwd()
     
-    parser = argparse.ArgumentParser(description='Conversion of line break symbol between linux (or mac) and windows text files.')
+    parser = argparse.ArgumentParser(description='Conversion of end-of-line (EOL) between linux/mac and windows text files.')
     parser.add_argument('filename', 
                         help='the file you want to do conversion with.', 
                         nargs='?', default=None)
@@ -71,7 +75,7 @@ if __name__=='__main__':
                         nargs='+')
     parser.add_argument('-e', '--exclude_ext', 
                         help='convert files unless they have specified extensions  in current directory. If specified, <filename> argument will be ignored.', 
-                        nargs='+')
+                        nargs='*')
     parser.add_argument('-s', '--sub_directory', 
                         help='recursively operate in all subdurectories.', 
                         action='store_true')
@@ -105,8 +109,15 @@ if __name__=='__main__':
         for filename in fileIterator(includeSubDir):
             if filename.split('.')[-1] in exts:
                 convertFile(filename, not nobackup, warnsize, verbose)
-    elif args.exclude_ext:
+    elif args.exclude_ext is not None:
         exts = args.exclude_ext
+        if nobackup:
+            s=''
+            while s!='y' and s!='n':
+                print('type [y] or [n]')
+                s = input('Binary files with extension not specified in '+str(exts)+' may be corrupted. Proceed anyway? (y/n): ')        
+            if not s[0].lower() == 'y':
+                raise SystemExit('Stopped by user.')
         for filename in fileIterator(includeSubDir):
             if filename.split('.')[-1] not in exts:
                 convertFile(filename, not nobackup, warnsize, verbose)
