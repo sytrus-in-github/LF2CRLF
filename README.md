@@ -1,7 +1,7 @@
 # LF2CRLF
 LF2CRLF: a handy python script to solve end-of-line(EOL) conversion problem
 
-_by Yuesong Shen_
+by _Yuesong Shen_
 
 ## basic examples
 
@@ -17,6 +17,11 @@ _by Yuesong Shen_
 - convert all files except extension _.pyc_ and _.exe_ in current directory, no console output unless a file bigger than 4.2 MB is to be backed up (default warning is for 1 MB, specify negative number to turn it off):
     
     `python path\to\lf2crlf.py -e pyc exe -q -w 4.2`
+- the script is in current working directory. I just want to convert everything in folder `\test folder`, no backup files
+    
+    `python lf2crlf.py -e -s -d "test folder" -n`
+    
+    **attention**: a warning will be fired when you use exclusion mode without backup to warn you about the potential destructive consequences of the script.
 - display full usage
     
     `python path\to\lf2crlf.py -h`
