@@ -20,12 +20,12 @@ def convertFile(filename, backup, warnsize, verbose):
             with open(filename+'.bak', 'wb') as filebody:
                 filebody.write(filecontent)
             if verbose:
-                print('backup file created for '+filename)
+                print('backup file created for: '+filename)
     filecontent = filecontent.replace(SOURCE_EOL, TARGET_EOL)
     with open(filename, 'wb') as filebody:
         filebody.write(filecontent)
     if verbose:
-        print('conversion done for '+filename)
+        print('conversion done for: '+filename)
 
 
 def getFileSize(filename):
@@ -51,13 +51,14 @@ def formatSize(n):
     return '{:.1f}ZB'.format(n)
 
 
-def fileIterator(includeSubdir):
+def fileIterator(basedir, includeSubdir):
     if not includeSubdir:
-        for filename in os.listdir():
+        for filename in os.listdir(basedir):
+            filename = os.path.join(basedir, filename)
             if os.path.isfile(filename):
                 yield filename
     else:
-        for root, _, filenames in os.walk('.'):
+        for root, _, filenames in os.walk(basedir):
             for filename in filenames:            
                 yield os.path.join(root, filename)
             
@@ -70,6 +71,9 @@ if __name__=='__main__':
     parser.add_argument('filename', 
                         help='the file you want to do conversion with.', 
                         nargs='?', default=None)
+    parser.add_argument('-d', '--directory', 
+                        help='specify a directory other than the current working directory to operate in.', 
+                        default='.')
     parser.add_argument('-i', '--include_ext', 
                         help='convert only files with specified extensions in current directory. If specified, <filename> argument and <-e> flag will be ignored.', 
                         nargs='+')
@@ -100,13 +104,14 @@ if __name__=='__main__':
     includeSubDir = args.sub_directory
     nobackup = args.no_backup
     warnsize = args.warnsize
+    basedir = args.directory
     verbose = not args.quiet
     if warnsize > 0:
         warnsize = int(round(warnsize*(2**20)))
     # operation
     if args.include_ext:
         exts = args.include_ext
-        for filename in fileIterator(includeSubDir):
+        for filename in fileIterator(basedir, includeSubDir):
             if filename.split('.')[-1] in exts:
                 convertFile(filename, not nobackup, warnsize, verbose)
     elif args.exclude_ext is not None:
@@ -118,8 +123,8 @@ if __name__=='__main__':
                 s = input('Binary files with extension not specified in '+str(exts)+' may be corrupted. Proceed anyway? (y/n): ')        
             if not s[0].lower() == 'y':
                 raise SystemExit('Stopped by user.')
-        for filename in fileIterator(includeSubDir):
+        for filename in fileIterator(basedir, includeSubDir):
             if filename.split('.')[-1] not in exts:
                 convertFile(filename, not nobackup, warnsize, verbose)
     else:
-        convertFile(args.filename, not nobackup, warnsize, verbose)
+        convertFile(os.path.join(basedir, args.filename), not nobackup, warnsize, verbose)
