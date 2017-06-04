@@ -6,6 +6,8 @@ import os
 TARGET_EOL = b'\r\n' # windows
 SOURCE_EOL = b'\n' # linux, mac
 
+def removeCR2(content):
+    return filecontent.replace(b'\r\r', b'\r')
 
 def convertFile(filename, backup, warnsize, verbose):
     with open(filename, 'rb') as filebody:
@@ -22,6 +24,9 @@ def convertFile(filename, backup, warnsize, verbose):
             if verbose:
                 print('backup file created for: '+filename)
     filecontent = filecontent.replace(SOURCE_EOL, TARGET_EOL)
+    if TARGET_EOL == b'\r\n':
+        filecontent = removeCR2(filecontent)
+    
     with open(filename, 'wb') as filebody:
         filebody.write(filecontent)
     if verbose:
